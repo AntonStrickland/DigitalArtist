@@ -4,9 +4,10 @@
 from PIL import Image
 import random
 
-img = Image.open("bride.jpg")
-
 new = Image.new("RGB", (100,100), (128, 128, 128))
+
+print( "Please enter a name for your picture:")
+name = input()
 
 for x in range(new.size[0]):
   for y in range(new.size[1]):
@@ -15,4 +16,5 @@ for x in range(new.size[0]):
     b = random.randint(0, 255)
     new.putpixel((x,y),(r,g,b))
 
+new.save("output/" + name + ".jpg", "JPEG")
 new.show()
