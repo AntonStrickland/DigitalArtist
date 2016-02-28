@@ -65,7 +65,7 @@ print(experiment.configInfo.numberOfEvals, numGenerations)
 for k in range(0, int(numGenerations)+3):
   generationList.append([])
   generationList2.append([])
-	
+  
 #For each run in the range
 for run in range(1,experiment.configInfo.numberOfRuns+1):
   experiment.initializeRun(run)
@@ -93,7 +93,7 @@ for run in range(1,experiment.configInfo.numberOfRuns+1):
       # print(experiment.numEvals)
      
     vis.visualize(experiment.numGen, experiment.population, img.size)
-		
+    
     # Create the fitness list
     del fitnessList[:]
     for i in experiment.population:
@@ -106,11 +106,11 @@ for run in range(1,experiment.configInfo.numberOfRuns+1):
     if experiment.population[0].fitness >= 99:
       print("99%!")
       break
-		
+    
     # Write output
     # writeOutput(experiment, generationList, generationList2, numGen, fitnessList)
     ##print len(experiment.population)
-		
+    
   if (experiment.bestEvalThisRun > experiment.maxFitnessValue):
         experiment.maxFitnessValue = experiment.bestEvalThisRun
   
@@ -122,5 +122,23 @@ for run in range(1,experiment.configInfo.numberOfRuns+1):
       new.putpixel((x,y),experiment.population[0].solution[x][y])
 
   new.save("output/" + name + "-run" + str(run) +  "." + ext.lower(), ext.upper())
+  
+  with open("output/" + name + "-treeR.sol",'w+') as output:
+      del experiment.population[0].gpTreeR.outputList[:]
+      outputTree = experiment.population[0].gpTreeR.output_tree_indented(" ",experiment.population[0].gpTreeR.root)
+      for out in experiment.population[0].gpTreeR.outputList[:]:
+        output.write(out)
+        
+  with open("output/" + name + "-treeG.sol",'w+') as output:
+      del experiment.population[0].gpTreeG.outputList[:]
+      outputTree = experiment.population[0].gpTreeG.output_tree_indented(" ",experiment.population[0].gpTreeG.root)
+      for out in experiment.population[0].gpTreeG.outputList[:]:
+        output.write(out)
+        
+  with open("output/" + name + "-treeB.sol",'w+') as output:
+      del experiment.population[0].gpTreeB.outputList[:]
+      outputTree = experiment.population[0].gpTreeB.output_tree_indented(" ",experiment.population[0].gpTreeB.root)
+      for out in experiment.population[0].gpTreeB.outputList[:]:
+        output.write(out)
 
 

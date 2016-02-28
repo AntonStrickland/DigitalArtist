@@ -12,6 +12,7 @@ class GPTree():
   def __init__(self, maxDepth, type="None"):
 
     self.maxDepth = maxDepth
+    self.outputList = []
     self.root = None
     self.makeNewRoot(type)
     
@@ -41,6 +42,7 @@ class GPTree():
     output = self.output_tree_indented(output, tree.right, level+1)
     output =  ' ' * level + str(tree.value) + "\n"
     # print output
+    self.outputList.append(output)
     output = self.output_tree_indented(output, tree.left, level+1)
     return output
     

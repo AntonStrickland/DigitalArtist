@@ -328,7 +328,7 @@ def createChildren(exp, childList, matingPool, size):
   for s in range (0, len(matingPool)-1):
   
     childSolution = []
-    childTarget = matingPool[s].target
+    # childTarget = matingPool[s].target
     
     # Crosses over two pixels to make a new pixel for each pixel
     # for i in range(0, recombinationRate):
