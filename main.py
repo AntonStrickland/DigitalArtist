@@ -16,14 +16,14 @@ else:
   name = argv[1]
   
 # Set the type of the image
-fileType = ''
+ext = ''
 if len(argv) < 3:
   print("Please specify a file type for the image (JPEG, PNG, BMP).")
   exit()
 else:
-  fileType = argv[2]
+  ext = argv[2]
   
-img = Image.open(name)
+img = Image.open("input/"+name+"."+ext.lower())
 target = []
 for x in range(0,img.width):
   target.append([])
@@ -40,7 +40,7 @@ for x in range(new.size[0]):
     a = random.randint(0, 255)
     new.putpixel((x,y),(r,g,b))
 '''
-# new.save("output/" + name + "." + fileType.lower(), fileType)
+# new.save("output/" + name + "." + ext.lower(), ext.upper())
 
 # Main part of the code begins here
 experiment = ga.GeneticAlgorithm()
@@ -108,6 +108,6 @@ for run in range(1,experiment.configInfo.numberOfRuns+1):
     for y in range(new.size[1]):
       new.putpixel((x,y),experiment.population[0].solution[x][y])
 
-  new.save("output/run" + str(run) + "." + fileType.lower(), fileType)
+  new.save("output/" + name + "-run" + str(run) +  "." + ext.lower(), ext.upper())
 
 
