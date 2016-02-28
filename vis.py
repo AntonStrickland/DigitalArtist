@@ -15,7 +15,7 @@ def checkInput():
       pygame.quit()
       sys.exit()
         
-def visualize(gen, pics):
+def visualize(gen, pics, size):
   screen.fill( (0,0,0) )
   
   bigX = 25
@@ -25,7 +25,7 @@ def visualize(gen, pics):
   smallX = 25
   smallY = bigY
   
-  picsPerColumn = 4
+  picsPerColumn = 2
   picsPerGen = 29
   index = 0
   
@@ -33,7 +33,7 @@ def visualize(gen, pics):
 
   # render text
   label = headerFont.render("Generation: " + str(gen), 1, (255,255,0))
-  screen.blit(label, (bigX, bigY-30))
+  screen.blit(label, (bigX, bigY-40))
   
   pics.sort(key=lambda individual: individual.fitness, reverse=True)
   nodeIndex = 0
@@ -43,17 +43,17 @@ def visualize(gen, pics):
       break
     if (index > picsPerColumn):
       index = 0
-      smallX = smallX + 125
+      smallX = smallX + size[0] + 100
       smallY = 100
       
-    for i in range(50):
-      for j in range(50):
+    for i in range(size[0]):
+      for j in range(size[1]):
         screen.set_at((smallX+i, smallY+j), individual.solution[i][j])
         
-    label = myfont.render(str(int(individual.fitness)), 1, (255,255,0))
+    label = myfont.render(str(round(individual.fitness, 4)), 1, (255,255,0))
     screen.blit(label, (smallX+60, smallY))
     
-    smallY = smallY + 75
+    smallY = smallY + size[1] + 25
     index = index + 1
     nodeIndex = nodeIndex + 1
     checkInput()
