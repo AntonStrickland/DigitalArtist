@@ -72,12 +72,12 @@ class GeneticAlgorithm:
   
     return
     
-  # initializes a picture of 50x50 with RGB pixels
-  def initializeUniformRandom(self):
+  # initializes a picture of n x n with RGB pixels
+  def initializeUniformRandom(self, size):
     sol = []
-    for x in range(0,50):
+    for x in range(0,size[0]):
       sol.append([])
-      for y in range(0,50):
+      for y in range(0,size[1]):
         r = random.randint(0, 255)
         g = random.randint(0, 255)
         b = random.randint(0, 255)
@@ -264,15 +264,15 @@ def uniformCrossover(parent1, parent2):
 
   return child1
   
-def firstGeneration(exp, generationList, target):
+def firstGeneration(exp, generationList, target, size):
   # Fill the population with mu individuals
   for i in range (0, exp.configInfo.mu):
-    individual = Individual(exp.initializeUniformRandom())
+    individual = Individual(exp.initializeUniformRandom(size))
     exp.population.append(individual)
 
   #The first generation's mu evaluations
   for eval in range(0, exp.configInfo.mu):
-    doEval(exp, exp.population[eval], target)
+    doEval(exp, exp.population[eval], target, size)
     exp.numEvals = exp.numEvals + 1
         
   fitnessList = []
@@ -305,7 +305,7 @@ def parentSelection(exp, matingPool):
       matingPool.append(experiment.population[r])
   return matingPool
   
-def createChildren(exp, childList, matingPool, target):
+def createChildren(exp, childList, matingPool, target, size):
 
   # Self-adaptive recombination (bonus)
   recombinationRate = 1
@@ -320,34 +320,41 @@ def createChildren(exp, childList, matingPool, target):
     #mutationRate = exp.configInfo.mutateChance
     #print "mutation rate: " + str(mutationRate)
   
-  childSolution = []
-  width, height = 50, 50
+  
+  width, height = size[0], size[1]
+
   for s in range (0, len(matingPool)-1):
   
+    childSolution = []
     # Crosses over two pixels to make a new pixel for each pixel
-    for i in range(0, recombinationRate):
-      for x in range(width):
-        childSolution.append([])
-        for y in range(height):
-          # Cross the two individual pixels
-          childPixel = uniformCrossover(matingPool[s].solution[x][y], matingPool[s+1].solution[x][y])
-          # print(childPixel, matingPool[s].solution[x][y], matingPool[s+1].solution[x][y])
+    # for i in range(0, recombinationRate):
+    for x in range(0, width):
+      childSolution.append([])
+      for y in range(0, height):
+        # Cross the two individual pixels
+        childPixel = uniformCrossover(matingPool[s].solution[x][y], matingPool[s+1].solution[x][y])
+        # print(childPixel, matingPool[s].solution[x][y], matingPool[s+1].solution[x][y])
           
-          for k in range(0,3):
-          
-            if (random.random() > mutateChance):
+        for k in range(0,3):
+        
+          g = exp.numGen
+          dt = 25 - (int(g/10))
+          if dt < 1:
+            dt = 1
               
-              if target[x][y][k] > childPixel[k]:
-                childPixel[k] += random.randint(0, 12)
-              else:
-                childPixel[k] -= random.randint(0, 12)
-                
-              if childPixel[k] > 255:
-                childPixel[k] = 255
-              if childPixel[k] < 0:
-                childPixel[k] = 0
+          if (random.random() > mutateChance):
+             
+            if target[x][y][k] > childPixel[k]:
+              childPixel[k] += random.randint(0, dt)
+            else:
+              childPixel[k] -= random.randint(0, dt)
+              
+            if childPixel[k] > 255:
+              childPixel[k] = 255
+            if childPixel[k] < 0:
+              childPixel[k] = 0
 
-          childSolution[x].append( (childPixel[0], childPixel[1], childPixel[2] ))
+        childSolution[x].append( (childPixel[0], childPixel[1], childPixel[2] ))
     
     
     # Add finalized child to the list of children
@@ -421,11 +428,11 @@ def writeFinalOutput(exp):
         output.write(str("%04d" % (eval)) + '\t' + str("{0:.4f}".format(avgAvgFitness)) + '\t'  + str("{0:.4f}".format(avgBestFitness)) + '\n')
   exp.outputResults()
     
-def doEval(exp, individual, target):
+def doEval(exp, individual, target, size):
 
   diffList = []
   # Get difference between each RGB value 
-  width, height = 50, 50
+  width, height = size[0], size[1]
   for x in range(width):
     for y in range(height):
       diffR = abs(individual.solution[x][y][0] - target[x][y][0])/255

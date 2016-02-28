@@ -23,12 +23,11 @@ if len(argv) < 3:
 else:
   fileType = argv[2]
   
-  
 img = Image.open(name)
 target = []
-for x in range(0,50):
+for x in range(0,img.width):
   target.append([])
-  for y in range(0,50):
+  for y in range(0,img.height):
     target[x].append( img.getpixel( (x,y) ) )
   
 # new = Image.new("RGBA", (50,50), (128, 128, 128, 128))
@@ -42,8 +41,6 @@ for x in range(new.size[0]):
     new.putpixel((x,y),(r,g,b))
 '''
 # new.save("output/" + name + "." + fileType.lower(), fileType)
-
-targetRGB = (255, 163, 47)
 
 # Main part of the code begins here
 experiment = ga.GeneticAlgorithm()
@@ -59,7 +56,7 @@ for k in range(0, int(numGenerations)+3):
 #For each run in the range
 for run in range(1,experiment.configInfo.numberOfRuns+1):
   experiment.initializeRun(run)
-  ga.firstGeneration(experiment, generationList, target)
+  ga.firstGeneration(experiment, generationList, target, img.size)
   
   #The other generations' lambda evaluations
   while(experiment.terminationCondition()):
@@ -73,16 +70,16 @@ for run in range(1,experiment.configInfo.numberOfRuns+1):
     # Calculate probability for parent selection and create children from mating pool
     del childList[:], matingPool[:]
     matingPool = ga.parentSelection(experiment, matingPool)
-    childList = ga.createChildren(experiment, childList, matingPool, target)
+    childList = ga.createChildren(experiment, childList, matingPool, target, img.size)
     
     #Evaluate the list of children
     for eval in range(0, experiment.configInfo.lamb):
-      ga.doEval(experiment, childList[eval], target)
+      ga.doEval(experiment, childList[eval], target, img.size)
       experiment.population.append(childList[eval])
       experiment.numEvals += 1
       # print(experiment.numEvals)
      
-    vis.visualize(experiment.numGen, experiment.population)
+    vis.visualize(experiment.numGen, experiment.population, img.size)
 		
     # Create the fitness list
     del fitnessList[:]
@@ -92,6 +89,10 @@ for run in range(1,experiment.configInfo.numberOfRuns+1):
     
     # Survival Selection
     ga.survivalSelection(experiment)
+    
+    if experiment.population[0].fitness >= 99:
+      print("99%!")
+      break
 		
     # Write output
     # writeOutput(experiment, generationList, generationList2, numGen, fitnessList)
@@ -100,7 +101,7 @@ for run in range(1,experiment.configInfo.numberOfRuns+1):
   if (experiment.bestEvalThisRun > experiment.maxFitnessValue):
         experiment.maxFitnessValue = experiment.bestEvalThisRun
   
-  new = Image.new("RGB", (50,50), (128, 128, 128))
+  new = Image.new("RGB", (img.width,img.height), (128, 128, 128))
 
   experiment.population.sort(key=lambda individual: individual.fitness, reverse=True)
   for x in range(new.size[0]):
