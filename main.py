@@ -54,7 +54,7 @@ for run in range(1,experiment.configInfo.numberOfRuns+1):
   #The other generations' lambda evaluations
   while(experiment.terminationCondition()):
     experiment.numGen += 1
-    print ("Generation: " + str(experiment.numGen))
+    # print ("Generation: " + str(experiment.numGen))
     
     # Survival Strategy, if "Plus", empty the population and only use mating pool
     if (experiment.configInfo.strategy == "Plus"):
@@ -70,7 +70,7 @@ for run in range(1,experiment.configInfo.numberOfRuns+1):
       ga.doEval(experiment, childList[eval])
       experiment.population.append(childList[eval])
       experiment.numEvals += 1
-      print(experiment.numEvals)
+      # print(experiment.numEvals)
      
     vis.visualize(experiment.numGen, experiment.population)
 		
@@ -78,7 +78,7 @@ for run in range(1,experiment.configInfo.numberOfRuns+1):
     del fitnessList[:]
     for i in experiment.population:
       fitnessList.append(i.fitness)
-    f = ga.displayFitness(experiment.population, "total population")
+    # f = ga.displayFitness(experiment.population, "total population")
     
     # Survival Selection
     ga.survivalSelection(experiment)

@@ -134,28 +134,25 @@ class GeneticAlgorithm:
     
     
   def truncation(self):
-    #pick k individuals randomly, with or without replacement
-    #select the best of these k comparing their fitness
-    #denote this individual as i
+
+    #print_sorted(population, "Truncation Before:")
     
-    #fit = displayFitness(self.population, "truncate start") 
-    
+    sortedPopulation = []
     sortedPopulation = self.population
-    sortedPopulation.sort(key=lambda x: x.fitness, reverse=True)
-    
-    #fit = displayFitness(sortedPopulation, "truncate sorted") 
+    sortedPopulation.sort(key=lambda x: x.fitness, reverse=False)
     
     newPopulation = []
     for i in range (self.configInfo.mu):
+      #print i
       newPopulation.append(sortedPopulation[i])
-    
+
     del self.population[:]
     
     for i in newPopulation:
       self.population.append(i)
       
-    #fit = displayFitness(self.population, "truncate added") 
-      
+    #print_sorted(population, "Truncation After:")
+        
     return
     
   def tournamentWithoutReplacement(self):
@@ -318,17 +315,35 @@ def createChildren(exp, childList, matingPool):
 
   # Self-adaptive mutation
   mutationRate = 1
+  mutateChance = 0.25
   #if (exp.configInfo.isAdaptiveMutation and exp.averageFitness <= 0.9*exp.bestEvalThisRun):
     #mutationRate = exp.configInfo.mutateChance
     #print "mutation rate: " + str(mutationRate)
-    
+  
+  childSolution = []
+  width, height = 50, 50
   for s in range (0, len(matingPool)-1):
+  
+    # Crosses over two pixels to make a new pixel for each pixel
     for i in range(0, recombinationRate):
-      childSolution = uniformCrossover(matingPool[s].solution, matingPool[s+1].solution)
+      for x in range(width):
+        childSolution.append([])
+        for y in range(height):
+          # Cross the two individual pixels
+          childPixel = uniformCrossover(matingPool[s].solution[x][y], matingPool[s+1].solution[x][y])
+          # print(childPixel, matingPool[s].solution[x][y], matingPool[s+1].solution[x][y])
+          
+          for k in range(0,3):
+            if (random.random() > mutateChance):
+              childPixel[k] += 50
+              if childPixel[k] > 255:
+                childPixel[k] = 255
+              if childPixel[k] < 0:
+                childPixel[k] = 0
+
+          childSolution[x].append( (childPixel[0], childPixel[1], childPixel[2] ))
     
-    for i in range(0, mutationRate):
-      childSolution = swap_mutation(childSolution)
-        
+    
     # Add finalized child to the list of children
     childList.append(Individual(childSolution))
         
@@ -410,10 +425,14 @@ def doEval(exp, individual):
       diffR = abs(individual.solution[x][y][0] - 255)/255
       diffG = abs(individual.solution[x][y][1] - 255)/255
       diffB = abs(individual.solution[x][y][2] - 255)/255
-      diffList.append(  (diffR + diffG + diffB)/3 )
+      # print(diffR, diffG, diffB)
+      diffTotal = (diffR + diffG + diffB)/3
+      # print(diffTotal)
+      diffList.append(diffTotal)
 
     # Save the solution and its fitness for this individual
-    individual.fitness = int(100-sum(diffList))
+    individual.fitness = 100 * sum(diffList)/(width*height)
+    # print(individual.fitness)
     individual.evaluated = True
 
     # print(individual.fitness, exp.bestEvalThisRun)

@@ -29,16 +29,13 @@ def visualize(gen, pics):
   picsPerGen = 29
   index = 0
   
-  delayTime = 10
+  delayTime = 500
 
   # render text
   label = headerFont.render("Generation: " + str(gen), 1, (255,255,0))
   screen.blit(label, (bigX, bigY-30))
-
-  pygame.display.update()
-  pygame.time.delay(delayTime)
   
-  pics.sort(key=lambda individual: individual.fitness, reverse=True)
+  pics.sort(key=lambda individual: individual.fitness, reverse=False)
   nodeIndex = 0
   
   for individual in pics:
@@ -53,14 +50,16 @@ def visualize(gen, pics):
       for j in range(50):
         screen.set_at((smallX+i, smallY+j), individual.solution[i][j])
         
-    label = myfont.render(str(individual.fitness), 1, (255,255,0))
+    label = myfont.render(str(int(individual.fitness)), 1, (255,255,0))
     screen.blit(label, (smallX+60, smallY))
     
     smallY = smallY + 75
     index = index + 1
     nodeIndex = nodeIndex + 1
-    pygame.display.update()
-    pygame.time.delay(delayTime)
     checkInput()
+    
+  pygame.display.update()
+  pygame.time.delay(delayTime)
+    
   
 
