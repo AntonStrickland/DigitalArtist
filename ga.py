@@ -10,8 +10,6 @@ import config
 
 # Define classes and functions
 
-targetRGB = (255, 1, 1)
-
 class Individual:
   solution = []
   fitness = 0
@@ -266,7 +264,7 @@ def uniformCrossover(parent1, parent2):
 
   return child1
   
-def firstGeneration(exp, generationList):
+def firstGeneration(exp, generationList, target):
   # Fill the population with mu individuals
   for i in range (0, exp.configInfo.mu):
     individual = Individual(exp.initializeUniformRandom())
@@ -274,7 +272,7 @@ def firstGeneration(exp, generationList):
 
   #The first generation's mu evaluations
   for eval in range(0, exp.configInfo.mu):
-    doEval(exp, exp.population[eval])
+    doEval(exp, exp.population[eval], target)
     exp.numEvals = exp.numEvals + 1
         
   fitnessList = []
@@ -307,7 +305,7 @@ def parentSelection(exp, matingPool):
       matingPool.append(experiment.population[r])
   return matingPool
   
-def createChildren(exp, childList, matingPool):
+def createChildren(exp, childList, matingPool, target):
 
   # Self-adaptive recombination (bonus)
   recombinationRate = 1
@@ -339,7 +337,7 @@ def createChildren(exp, childList, matingPool):
           
             if (random.random() > mutateChance):
               
-              if targetRGB[k] > childPixel[k]:
+              if target[x][y][k] > childPixel[k]:
                 childPixel[k] += random.randint(0, 12)
               else:
                 childPixel[k] -= random.randint(0, 12)
@@ -423,16 +421,16 @@ def writeFinalOutput(exp):
         output.write(str("%04d" % (eval)) + '\t' + str("{0:.4f}".format(avgAvgFitness)) + '\t'  + str("{0:.4f}".format(avgBestFitness)) + '\n')
   exp.outputResults()
     
-def doEval(exp, individual):
+def doEval(exp, individual, target):
 
   diffList = []
   # Get difference between each RGB value 
   width, height = 50, 50
   for x in range(width):
     for y in range(height):
-      diffR = abs(individual.solution[x][y][0] - targetRGB[0])/255
-      diffG = abs(individual.solution[x][y][1] - targetRGB[1])/255
-      diffB = abs(individual.solution[x][y][2] - targetRGB[2])/255
+      diffR = abs(individual.solution[x][y][0] - target[x][y][0])/255
+      diffG = abs(individual.solution[x][y][1] - target[x][y][1])/255
+      diffB = abs(individual.solution[x][y][2] - target[x][y][2])/255
       # print(diffR, diffG, diffB)
       diffTotal = (diffR + diffG + diffB)/3
       # print(diffTotal)

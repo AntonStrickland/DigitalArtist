@@ -10,7 +10,7 @@ import vis
 # Set the name of the image
 name = ''
 if len(argv) < 2:
-  print("Please specify a file name for the image.")
+  print("Please specify a file name for the input image.")
   exit()
 else:
   name = argv[1]
@@ -23,8 +23,16 @@ if len(argv) < 3:
 else:
   fileType = argv[2]
   
-new = Image.new("RGBA", (50,50), (128, 128, 128, 128))
-
+  
+img = Image.open(name)
+target = []
+for x in range(0,50):
+  target.append([])
+  for y in range(0,50):
+    target[x].append( img.getpixel( (x,y) ) )
+  
+# new = Image.new("RGBA", (50,50), (128, 128, 128, 128))
+'''
 for x in range(new.size[0]):
   for y in range(new.size[1]):
     r = random.randint(0, 255)
@@ -32,8 +40,10 @@ for x in range(new.size[0]):
     b = random.randint(0, 255)
     a = random.randint(0, 255)
     new.putpixel((x,y),(r,g,b))
+'''
+# new.save("output/" + name + "." + fileType.lower(), fileType)
 
-new.save("output/" + name + "." + fileType.lower(), fileType)
+targetRGB = (255, 163, 47)
 
 # Main part of the code begins here
 experiment = ga.GeneticAlgorithm()
@@ -49,7 +59,7 @@ for k in range(0, int(numGenerations)+3):
 #For each run in the range
 for run in range(1,experiment.configInfo.numberOfRuns+1):
   experiment.initializeRun(run)
-  ga.firstGeneration(experiment, generationList)
+  ga.firstGeneration(experiment, generationList, target)
   
   #The other generations' lambda evaluations
   while(experiment.terminationCondition()):
@@ -63,11 +73,11 @@ for run in range(1,experiment.configInfo.numberOfRuns+1):
     # Calculate probability for parent selection and create children from mating pool
     del childList[:], matingPool[:]
     matingPool = ga.parentSelection(experiment, matingPool)
-    childList = ga.createChildren(experiment, childList, matingPool)
+    childList = ga.createChildren(experiment, childList, matingPool, target)
     
     #Evaluate the list of children
     for eval in range(0, experiment.configInfo.lamb):
-      ga.doEval(experiment, childList[eval])
+      ga.doEval(experiment, childList[eval], target)
       experiment.population.append(childList[eval])
       experiment.numEvals += 1
       # print(experiment.numEvals)
