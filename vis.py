@@ -29,13 +29,13 @@ def visualize(gen, pics):
   picsPerGen = 29
   index = 0
   
-  delayTime = 500
+  delayTime = 0
 
   # render text
   label = headerFont.render("Generation: " + str(gen), 1, (255,255,0))
   screen.blit(label, (bigX, bigY-30))
   
-  pics.sort(key=lambda individual: individual.fitness, reverse=False)
+  pics.sort(key=lambda individual: individual.fitness, reverse=True)
   nodeIndex = 0
   
   for individual in pics:

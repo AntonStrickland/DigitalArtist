@@ -10,6 +10,8 @@ import config
 
 # Define classes and functions
 
+targetRGB = (255, 1, 1)
+
 class Individual:
   solution = []
   fitness = 0
@@ -334,8 +336,14 @@ def createChildren(exp, childList, matingPool):
           # print(childPixel, matingPool[s].solution[x][y], matingPool[s+1].solution[x][y])
           
           for k in range(0,3):
+          
             if (random.random() > mutateChance):
-              childPixel[k] += 50
+              
+              if targetRGB[k] > childPixel[k]:
+                childPixel[k] += random.randint(0, 12)
+              else:
+                childPixel[k] -= random.randint(0, 12)
+                
               if childPixel[k] > 255:
                 childPixel[k] = 255
               if childPixel[k] < 0:
@@ -422,9 +430,9 @@ def doEval(exp, individual):
   width, height = 50, 50
   for x in range(width):
     for y in range(height):
-      diffR = abs(individual.solution[x][y][0] - 255)/255
-      diffG = abs(individual.solution[x][y][1] - 255)/255
-      diffB = abs(individual.solution[x][y][2] - 255)/255
+      diffR = abs(individual.solution[x][y][0] - targetRGB[0])/255
+      diffG = abs(individual.solution[x][y][1] - targetRGB[1])/255
+      diffB = abs(individual.solution[x][y][2] - targetRGB[2])/255
       # print(diffR, diffG, diffB)
       diffTotal = (diffR + diffG + diffB)/3
       # print(diffTotal)
