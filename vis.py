@@ -25,8 +25,8 @@ def visualize(gen, pics, size):
   smallX = 25
   smallY = bigY
   
-  picsPerColumn = 2
-  picsPerGen = 29
+  picsPerColumn = 1
+  picsPerGen = 3
   index = 0
   
   delayTime = 0
@@ -39,9 +39,9 @@ def visualize(gen, pics, size):
   nodeIndex = 0
   
   for individual in pics:
-    if nodeIndex > picsPerGen:
+    if nodeIndex >= picsPerGen:
       break
-    if (index > picsPerColumn):
+    if (index >= picsPerColumn):
       index = 0
       smallX = smallX + size[0] + 100
       smallY = 100
