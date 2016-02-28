@@ -25,8 +25,8 @@ def visualize(gen, pics, size):
   smallX = 25
   smallY = bigY
   
-  picsPerColumn = 1
-  picsPerGen = 3
+  picsPerColumn = 3
+  picsPerGen = 9
   index = 0
   
   delayTime = 0

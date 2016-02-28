@@ -7,27 +7,38 @@ import sys
 from datetime import datetime
 import time
 import config
+import gp
 
 # Define classes and functions
 
+palette = [ (255,1,1), (1,255,1), (1,1,255) ] # (255, 255, 1), (255, 1, 255), (1, 255, 255), (255, 255, 255), (1, 1, 1) ]
+
+def clamp(n, smallest, largest): 
+  return int(max(smallest, min(n, largest)))
+
 class Individual:
-  solution = []
-  fitness = 0
-  pSelection = 0
-  evaluated = False
   
-  def __init__(self, solution=[], fitness=-1):
+  def __init__(self, treeR, treeG, treeB, solution=[], target=None, fitness=-1):
     self.solution = solution
     self.fitness = fitness
     self.pSelection = 0
     self.evaluated = False
-
-
+    self.target = target
+    self.gpTreeR = treeR
+    self.gpTreeG = treeG
+    self.gpTreeB = treeB
+      
+  def evaluate(self, x, y):
+    r = self.gpTreeR.evaluate(x, y)
+    g = self.gpTreeG.evaluate(x, y)
+    b = self.gpTreeB.evaluate(x, y)
+    return (r,g,b)
+    
+    
 class GeneticAlgorithm:
   
   # Initialize the empty lists
   population = []
-
   elitistPool = []
 
   def __init__(self):
@@ -41,6 +52,7 @@ class GeneticAlgorithm:
     self.configInfo = config.ConfigInfo()
     # self.configInfo.config()
     self.lastRestartNum = 0
+    self.gpTree = gp.GPTree(self.configInfo.maxDepth)
           
   def outputResults(self):
     # Write to the output file
@@ -81,7 +93,7 @@ class GeneticAlgorithm:
         r = random.randint(0, 255)
         g = random.randint(0, 255)
         b = random.randint(0, 255)
-        sol[x].append( (r, g, b) )
+        sol[x].append( (r,g,b) )
     return sol
       
   def rouletteWheel(self):
@@ -264,15 +276,15 @@ def uniformCrossover(parent1, parent2):
 
   return child1
   
-def firstGeneration(exp, generationList, target, size):
+def firstGeneration(exp, generationList, initialTarget, size):
   # Fill the population with mu individuals
   for i in range (0, exp.configInfo.mu):
-    individual = Individual(exp.initializeUniformRandom(size))
+    individual = Individual(exp.initializeUniformRandom(size), initialTarget)
     exp.population.append(individual)
 
   #The first generation's mu evaluations
   for eval in range(0, exp.configInfo.mu):
-    doEval(exp, exp.population[eval], target, size)
+    doEval(exp, exp.population[eval], size)
     exp.numEvals = exp.numEvals + 1
         
   fitnessList = []
@@ -305,27 +317,19 @@ def parentSelection(exp, matingPool):
       matingPool.append(experiment.population[r])
   return matingPool
   
-def createChildren(exp, childList, matingPool, target, size):
+def createChildren(exp, childList, matingPool, size):
 
-  # Self-adaptive recombination (bonus)
   recombinationRate = 1
-  #if (exp.configInfo.isAdaptiveRecombination and exp.averageFitness <= 0.9*exp.bestEvalThisRun):
-    #recombinationRate = exp.configInfo.recombChance
-    ##print "mutation rate: " + str(mutationRate)
-
-  # Self-adaptive mutation
   mutationRate = 1
-  mutateChance = 0.25
-  #if (exp.configInfo.isAdaptiveMutation and exp.averageFitness <= 0.9*exp.bestEvalThisRun):
-    #mutationRate = exp.configInfo.mutateChance
-    #print "mutation rate: " + str(mutationRate)
-  
+  mutateChance = 0.75
   
   width, height = size[0], size[1]
 
   for s in range (0, len(matingPool)-1):
   
     childSolution = []
+    childTarget = matingPool[s].target
+    
     # Crosses over two pixels to make a new pixel for each pixel
     # for i in range(0, recombinationRate):
     for x in range(0, width):
@@ -333,32 +337,26 @@ def createChildren(exp, childList, matingPool, target, size):
       for y in range(0, height):
         # Cross the two individual pixels
         childPixel = uniformCrossover(matingPool[s].solution[x][y], matingPool[s+1].solution[x][y])
-        # print(childPixel, matingPool[s].solution[x][y], matingPool[s+1].solution[x][y])
-          
+        targetPixel = uniformCrossover(childTarget[x][y], childTarget[x][y])
+
         for k in range(0,3):
-        
-          g = exp.numGen
-          dt = 25 - (int(g/10))
-          if dt < 1:
-            dt = 1
               
           if (random.random() > mutateChance):
+             # childPixel = random.choice(palette)
+             # target[x][y] = childPixel
              
-            if target[x][y][k] > childPixel[k]:
-              childPixel[k] += random.randint(0, dt)
+          
+            if childTarget[x][y][k] > childPixel[k]:
+              childPixel[k] += random.randint(0, 24)
             else:
-              childPixel[k] -= random.randint(0, dt)
+              childPixel[k] -= random.randint(0, 24)
               
-            if childPixel[k] > 255:
-              childPixel[k] = 255
-            if childPixel[k] < 0:
-              childPixel[k] = 0
+            childPixel[k] = clamp(childPixel[k], 0, 255)
 
         childSolution[x].append( (childPixel[0], childPixel[1], childPixel[2] ))
     
-    
     # Add finalized child to the list of children
-    childList.append(Individual(childSolution))
+    childList.append(Individual(childSolution, childTarget))
         
   return childList
       
@@ -428,16 +426,18 @@ def writeFinalOutput(exp):
         output.write(str("%04d" % (eval)) + '\t' + str("{0:.4f}".format(avgAvgFitness)) + '\t'  + str("{0:.4f}".format(avgBestFitness)) + '\n')
   exp.outputResults()
     
-def doEval(exp, individual, target, size):
+def doEval(exp, individual, size):
 
   diffList = []
   # Get difference between each RGB value 
   width, height = size[0], size[1]
   for x in range(width):
     for y in range(height):
-      diffR = abs(individual.solution[x][y][0] - target[x][y][0])/255
-      diffG = abs(individual.solution[x][y][1] - target[x][y][1])/255
-      diffB = abs(individual.solution[x][y][2] - target[x][y][2])/255
+      eval = individual.evaluate(x,y)
+      individual.solution[x][y] = ( clamp(eval[0],0,255), clamp(eval[1],0,255), clamp(eval[2],0,255) )
+      diffR = abs(individual.solution[x][y][0] - individual.target[x][y][0])/255
+      diffG = abs(individual.solution[x][y][1] - individual.target[x][y][1])/255
+      diffB = abs(individual.solution[x][y][2] - individual.target[x][y][2])/255
       # print(diffR, diffG, diffB)
       diffTotal = (diffR + diffG + diffB)/3
       # print(diffTotal)
@@ -453,3 +453,70 @@ def doEval(exp, individual, target, size):
     if (individual.fitness > exp.bestEvalThisRun):
       exp.bestEvalThisRun = individual.fitness
     
+def firstGenerationTree(exp, generationList, initialTarget, size):
+
+  # Fill the population with mu individuals
+  for i in range (0, exp.configInfo.mu):
+    
+    if exp.configInfo.ramped == "True":
+      if i < exp.configInfo.mu / 2:
+        treeR = gp.GPTree(exp.configInfo.maxDepth, "Full")
+        treeG = gp.GPTree(exp.configInfo.maxDepth, "Full")
+        treeB = gp.GPTree(exp.configInfo.maxDepth, "Full")
+      else:
+        treeR = gp.GPTree(exp.configInfo.maxDepth, "Full")
+        treeG = gp.GPTree(exp.configInfo.maxDepth, "Full")
+        treeB = gp.GPTree(exp.configInfo.maxDepth, "Full")
+    else:
+      treeR = gp.GPTree(exp.configInfo.maxDepth)
+      treeG = gp.GPTree(exp.configInfo.maxDepth)
+      treeB = gp.GPTree(exp.configInfo.maxDepth)
+      
+    exp.population.append(Individual(treeR, treeG, treeB, exp.initializeUniformRandom(size), initialTarget))
+    
+  # The first generation's mu evaluations
+  for eval in range(0, exp.configInfo.mu):
+    doEval(exp, exp.population[eval], size)
+    exp.numEvals = exp.numEvals + 1
+        
+  fitnessList = []
+  for i in range (0, len(exp.population)):
+    fitnessList.append(exp.population[i].fitness)
+    
+
+def createChildrenTree(exp, childList, matingPool, initialTarget, imgSize):
+
+  size = 0
+  while(size < len(matingPool)):
+    # print size
+    
+    r = random.randint(0, 100)
+    
+    if r <= exp.configInfo.pCrossover and size+1 < len(matingPool):
+      # print "Do crossover!"
+      treeR = gp.subTreeCrossover(matingPool[size].gpTreeR, matingPool[size+1].gpTreeR)
+      treeG = gp.subTreeCrossover(matingPool[size].gpTreeG, matingPool[size+1].gpTreeG)
+      treeB = gp.subTreeCrossover(matingPool[size].gpTreeB, matingPool[size+1].gpTreeB)
+      size = size + 2
+      #print matingPool[s].solution
+      
+      # Add finalized children to the list of children
+      childList.append(Individual(treeR[0], treeG[0], treeB[0], exp.initializeUniformRandom(imgSize), initialTarget))
+      childList.append(Individual(treeR[1], treeG[1], treeB[1], exp.initializeUniformRandom(imgSize), initialTarget))
+    
+    elif r > exp.configInfo.pCrossover and r < exp.configInfo.pCrossover + exp.configInfo.pMutation:
+      # print "Do mutation!"
+      treeR = gp.subTreeMutation(matingPool[size].gpTreeR, matingPool[size].gpTreeR.root)
+      treeG = gp.subTreeMutation(matingPool[size].gpTreeG, matingPool[size].gpTreeG.root)
+      treeB = gp.subTreeMutation(matingPool[size].gpTreeB, matingPool[size].gpTreeB.root)
+      
+      childList.append(Individual(treeR, treeG, treeB, exp.initializeUniformRandom(imgSize), initialTarget))
+      size = size + 1
+    else:
+      # print "Do replication!"
+      # Select individual based on fitness
+      # Insert copy of it into next gen
+      childList.append(Individual(matingPool[size].gpTreeR, matingPool[size].gpTreeG, matingPool[size].gpTreeB, exp.initializeUniformRandom(imgSize), initialTarget))
+      size = size + 1
+        
+  return childList

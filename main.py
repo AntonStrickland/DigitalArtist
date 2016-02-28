@@ -7,6 +7,8 @@ import random
 import ga
 import vis
 
+
+
 # Set the name of the image
 name = ''
 if len(argv) < 2:
@@ -28,7 +30,18 @@ target = []
 for x in range(0,img.width):
   target.append([])
   for y in range(0,img.height):
-    target[x].append( img.getpixel( (x,y) ) )
+    pix = img.getpixel( (x,y) )
+    # print("p: " + str(pix))
+    #if pix[0] > 33 and pix[1] > 33 and pix[2] > 33:
+      #p0 = ga.clamp(pix[0] + random.randint(0, 128), 0, 255)
+      #p1 = pix[1]
+      #p2 = pix[2]
+      # p1 = ga.clamp(pix[1] + random.randint(-64, 64), 0, 255)
+      # p2 = ga.clamp(pix[2] + random.randint(-64, 64), 0, 255)
+      # print((p0, p1, p2))
+      #target[x].append( (p0, p1, p2) )
+    #else:
+    target[x].append(pix)
   
 # new = Image.new("RGBA", (50,50), (128, 128, 128, 128))
 '''
@@ -56,7 +69,7 @@ for k in range(0, int(numGenerations)+3):
 #For each run in the range
 for run in range(1,experiment.configInfo.numberOfRuns+1):
   experiment.initializeRun(run)
-  ga.firstGeneration(experiment, generationList, target, img.size)
+  ga.firstGenerationTree(experiment, generationList, target, img.size)
   
   #The other generations' lambda evaluations
   while(experiment.terminationCondition()):
@@ -70,11 +83,11 @@ for run in range(1,experiment.configInfo.numberOfRuns+1):
     # Calculate probability for parent selection and create children from mating pool
     del childList[:], matingPool[:]
     matingPool = ga.parentSelection(experiment, matingPool)
-    childList = ga.createChildren(experiment, childList, matingPool, target, img.size)
+    childList = ga.createChildrenTree(experiment, childList, matingPool, target, img.size)
     
     #Evaluate the list of children
     for eval in range(0, experiment.configInfo.lamb):
-      ga.doEval(experiment, childList[eval], target, img.size)
+      ga.doEval(experiment, childList[eval], img.size)
       experiment.population.append(childList[eval])
       experiment.numEvals += 1
       # print(experiment.numEvals)
