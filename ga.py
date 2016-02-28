@@ -139,7 +139,7 @@ class GeneticAlgorithm:
     
     sortedPopulation = []
     sortedPopulation = self.population
-    sortedPopulation.sort(key=lambda x: x.fitness, reverse=False)
+    sortedPopulation.sort(key=lambda x: x.fitness, reverse=True)
     
     newPopulation = []
     for i in range (self.configInfo.mu):
@@ -431,7 +431,7 @@ def doEval(exp, individual):
       diffList.append(diffTotal)
 
     # Save the solution and its fitness for this individual
-    individual.fitness = 100 * sum(diffList)/(width*height)
+    individual.fitness = 100 - (100 * sum(diffList)/(width*height))
     # print(individual.fitness)
     individual.evaluated = True
 
